@@ -12,6 +12,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
+from kivy.graphics import Color, Rectangle
 
 from utils.theme import THEME, FONT_BODY, FONT_LARGE, FONT_TITLE, PADDING, SPACING
 from views.common import RoundedButton, Card, Snackbar
@@ -23,6 +24,11 @@ class LoginScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        with self.canvas.before:
+            Color(0.95, 0.95, 0.95, 1)
+            self._background = Rectangle(pos=self.pos, size=self.size)
+        self.bind(pos=self._update_background, size=self._update_background)
+
         wrapper = BoxLayout(
             orientation="vertical",
             padding=[PADDING, PADDING * 3, PADDING, PADDING],
@@ -30,23 +36,38 @@ class LoginScreen(Screen):
         )
 
         # ------------------- Header -------------------
-        wrapper.add_widget(
+        header_bar = BoxLayout(
+            orientation="vertical",
+            size_hint_y=None,
+            height=100,
+            padding=[PADDING, PADDING // 2, PADDING, PADDING // 2],
+            spacing=6,
+        )
+        with header_bar.canvas.before:
+            Color(0.08, 0.12, 0.22, 1)
+            header_bar._bg = Rectangle(pos=header_bar.pos, size=header_bar.size)
+        header_bar.bind(pos=lambda *_: setattr(header_bar._bg, "pos", header_bar.pos),
+                        size=lambda *_: setattr(header_bar._bg, "size", header_bar.size))
+
+        header_bar.add_widget(
             Label(
                 text="Smart Student Planner",
                 font_size=FONT_TITLE, bold=True,
-                color=THEME["text"], size_hint_y=None, height=40,
+                color=(1, 1, 1, 1), size_hint_y=None, height=40,
             )
         )
-        wrapper.add_widget(
+        header_bar.add_widget(
             Label(
                 text="Plan modules, deadlines and revision in one place.",
-                font_size=FONT_BODY, color=THEME["muted"],
+                font_size=FONT_BODY, color=(0.85, 0.9, 1, 1),
                 size_hint_y=None, height=24,
             )
         )
+        wrapper.add_widget(header_bar)
 
         # ------------------- Mode toggle -------------------
         toggle_row = BoxLayout(size_hint_y=None, height=44, spacing=8)
+
         self.tab_signin = ToggleButton(
             text="Sign in", state="down", group="auth_mode",
             background_normal="", background_down="",
@@ -104,6 +125,10 @@ class LoginScreen(Screen):
 
         # Start in sign-in mode
         self._switch_mode("signin")
+
+    def _update_background(self, *_):
+        self._background.pos = self.pos
+        self._background.size = self.size
 
     # --------------------------------------------------- handlers
     def _switch_mode(self, mode: str) -> None:

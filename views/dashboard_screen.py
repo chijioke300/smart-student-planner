@@ -14,6 +14,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.modalview import ModalView
 
 from utils.theme import (
     THEME, PRIORITY_COLOURS, FONT_BODY, FONT_LARGE, FONT_SMALL,
@@ -40,8 +41,13 @@ class DashboardScreen(Screen):
 
         settings_button = RoundedButton(text="Settings", size_hint_x=None, width=110)
         settings_button.bind(on_release=lambda *_: setattr(self.manager, "current", "settings"))
+        logout_button = RoundedButton(
+            text="Logout", size_hint_x=None, width=110, bg=THEME["danger"]
+        )
+        logout_button.bind(on_release=self._logout)
         header.add_widget(self.title_label)
         header.add_widget(settings_button)
+        header.add_widget(logout_button)
         root.add_widget(header)
 
         # ---------------- Search bar ----------------
@@ -172,6 +178,41 @@ class DashboardScreen(Screen):
         form = self.manager.get_screen("task_form")
         form.load(None)
         self.manager.current = "task_form"
+
+    def _logout(self, *_):
+        self._show_logout_confirmation()
+
+    def _show_logout_confirmation(self) -> None:
+        confirm = ModalView(size_hint=(0.8, None), height=180, auto_dismiss=False)
+        body = BoxLayout(orientation="vertical", padding=16, spacing=16)
+
+        body.add_widget(
+            Label(
+                text="Are you sure you want to log out?",
+                color=THEME["text"], font_size=18,
+                halign="center", valign="middle",
+                size_hint_y=None, height=60,
+            )
+        )
+
+        button_row = BoxLayout(size_hint_y=None, height=48, spacing=12)
+        cancel_btn = RoundedButton(text="Cancel", bg=THEME["muted"])
+        confirm_btn = RoundedButton(text="Log out", bg=THEME["danger"])
+        button_row.add_widget(cancel_btn)
+        button_row.add_widget(confirm_btn)
+
+        body.add_widget(button_row)
+        confirm.add_widget(body)
+
+        cancel_btn.bind(on_release=lambda *_: confirm.dismiss())
+        confirm_btn.bind(on_release=lambda *_: self._perform_logout(confirm))
+        confirm.open()
+
+    def _perform_logout(self, dialog: ModalView) -> None:
+        dialog.dismiss()
+        app = App.get_running_app()
+        app.auth.logout()
+        self.manager.current = "login"
 
     def _edit_task(self, task):
         form = self.manager.get_screen("task_form")
