@@ -1,0 +1,330 @@
+#:import THEME utils.theme.THEME
+#:import FONT_BODY utils.theme.FONT_BODY
+#:import FONT_LARGE utils.theme.FONT_LARGE
+#:import FONT_SMALL utils.theme.FONT_SMALL
+#:import PADDING utils.theme.PADDING
+#:import SPACING utils.theme.SPACING
+#:import RoundedButton views.common.RoundedButton
+#:import Card views.common.Card
+#:import Snackbar views.common.Snackbar
+#:import Spinner kivy.uix.spinner.Spinner
+#:import CheckBox kivy.uix.checkbox.CheckBox
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+#:import ToggleButton kivy.uix.togglebutton.ToggleButton
+
+<LoginScreen>:
+    status_text: ''
+    status_error: False
+    mode: 'signin'
+
+    canvas.before:
+        Color:
+            rgba: 0.95, 0.95, 0.95, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: "vertical"
+
+        BoxLayout:
+            orientation: "vertical"
+            padding: [PADDING, PADDING * 2, PADDING, 0]
+            spacing: SPACING
+            size_hint_y: None
+            height: self.minimum_height
+
+            BoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: 100
+                padding: [PADDING, PADDING // 2, PADDING, PADDING // 2]
+                spacing: 6
+                canvas.before:
+                    Color:
+                        rgba: 0.08, 0.12, 0.22, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                Label:
+                    text: "Smart Student Planner"
+                    color: 1, 1, 1, 1
+                    font_size: FONT_LARGE
+                    bold: True
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+
+                Label:
+                    text: "Sign in or create an account"
+                    color: 1, 1, 1, 1
+                    font_size: FONT_BODY
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+
+            BoxLayout:
+                orientation: "horizontal"
+                size_hint_y: None
+                height: 44
+                spacing: 8
+
+                ToggleButton:
+                    id: tab_signin
+                    text: "Sign in"
+                    state: "down"
+                    group: "mode"
+                    on_state: root.mode = 'signin' if self.state == 'down' else ''
+
+                ToggleButton:
+                    id: tab_signup
+                    text: "Sign up"
+                    state: "normal"
+                    group: "mode"
+                    on_state: root.mode = 'signup' if self.state == 'down' else ''
+
+            BoxLayout:
+                orientation: "vertical"
+                spacing: SPACING
+                size_hint_y: None
+                height: self.minimum_height
+
+                TextInput:
+                    id: name_field
+                    hint_text: "Full name"
+                    multiline: False
+                    opacity: 1 if root.mode == 'signup' else 0
+                    size: self.size if root.mode == 'signup' else (self.width, 0)
+                    size_hint_y: None
+                    height: 44 if root.mode == 'signup' else 0
+                    padding: [10, 12]
+
+                TextInput:
+                    id: email_field
+                    hint_text: "Email address"
+                    multiline: False
+                    size_hint_y: None
+                    height: 44
+                    padding: [10, 12]
+
+                TextInput:
+                    id: password_field
+                    hint_text: "Password (min 6 characters)"
+                    password: True
+                    multiline: False
+                    size_hint_y: None
+                    height: 44
+                    padding: [10, 12]
+
+                RoundedButton:
+                    id: action_button
+                    text: 'Create account' if root.mode == 'signup' else 'Sign in'
+                    size_hint_y: None
+                    height: 48
+                    on_release: root._submit()
+
+                Label:
+                    id: status_label
+                    text: root.status_text
+                    color: (0.86, 0.21, 0.27, 1) if root.status_error else THEME["muted"]
+                    font_size: 13
+                    size_hint_y: None
+                    height: 20
+
+        Widget:
+
+<DashboardScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: [PADDING, PADDING, PADDING, PADDING]
+        spacing: SPACING
+
+        BoxLayout:
+            size_hint_y: None
+            height: 110
+
+            FloatLayout:
+                Label:
+                    text: "Dashboard"
+                    font_size: FONT_LARGE
+                    bold: True
+                    color: THEME["primary"]
+                    size_hint: None, None
+                    size: self.texture_size
+                    pos_hint: {"x": 0.05, "top": 0.95}
+
+                Label:
+                    id: greeting_label
+                    text: "Hello, Student"
+                    font_size: FONT_BODY
+                    color: THEME["text"]
+                    size_hint: None, None
+                    size: self.texture_size
+                    pos_hint: {"x": 0.05, "top": 0.72}
+
+                RoundedButton:
+                    text: "Logout"
+                    size_hint: None, None
+                    size: 100, 40
+                    pos_hint: {"right": 0.98, "top": 0.95}
+                    on_release: root.confirm_logout()
+
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: 48
+            spacing: SPACING
+
+            TextInput:
+                id: search_input
+                hint_text: "Search tasks..."
+                multiline: False
+                on_text: root.refresh()
+
+            RoundedButton:
+                text: "+ Add Task"
+                size_hint: None, None
+                size: 100, 40
+                on_release: root.open_task_form()
+
+            RoundedButton:
+                text: "Settings"
+                size_hint: None, None
+                size: 100, 40
+                on_release: root.open_settings()
+
+        ScrollView:
+            do_scroll_x: False
+            GridLayout:
+                id: task_list
+                cols: 1
+                spacing: SPACING
+                size_hint_y: None
+                height: self.minimum_height
+
+<TaskFormScreen>:
+    title_text: ''
+    description_text: ''
+    due_date_text: ''
+    priority_text: 'Medium'
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: [PADDING, PADDING, PADDING, PADDING]
+        spacing: SPACING
+
+        Label:
+            id: heading
+            text: "Add task"
+            font_size: FONT_LARGE
+            bold: True
+            size_hint_y: None
+            height: 32
+
+        TextInput:
+            id: title_input
+            hint_text: "Task title"
+            multiline: False
+
+        TextInput:
+            id: module_input
+            hint_text: "Module"
+            multiline: False
+
+        TextInput:
+            id: due_input
+            hint_text: "Due date (YYYY-MM-DD)"
+            multiline: False
+
+        Spinner:
+            id: priority_input
+            text: "Medium"
+            values: ["Low", "Medium", "High"]
+            size_hint_y: None
+            height: 44
+
+        TextInput:
+            id: notes_input
+            hint_text: "Notes"
+            multiline: True
+
+        Label:
+            id: error_label
+            text: ""
+            color: (0.86, 0.21, 0.27, 1)
+            font_size: 12
+            size_hint_y: None
+            height: 20
+
+        BoxLayout:
+            spacing: SPACING
+            size_hint_y: None
+            height: 48
+
+            RoundedButton:
+                id: save_button
+                text: "Save task"
+                on_release: root._save()
+
+            RoundedButton:
+                text: "Cancel"
+                on_release: app.root.current = 'dashboard'
+
+<SettingsScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: [PADDING, PADDING, PADDING, PADDING]
+        spacing: SPACING
+
+        canvas.before:
+            Color:
+                rgba: 0.12, 0.12, 0.14, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Label:
+            text: "Settings"
+            font_size: FONT_LARGE
+            bold: True
+            color: 1, 1, 1, 1
+            size_hint_y: None
+            height: 32
+
+        Label:
+            id: account_label
+            text: "Signed in as..."
+            font_size: FONT_BODY
+            color: 1, 1, 1, 1
+            size_hint_y: None
+            height: 32
+
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: 48
+            spacing: SPACING
+
+            Label:
+                text: "Dark mode"
+                color: 1, 1, 1, 1
+                size_hint_x: 0.7
+
+            CheckBox:
+                id: contrast_switch
+                size_hint_x: 0.3
+                on_active: root._on_contrast(self, self.active)
+
+        BoxLayout:
+            spacing: SPACING
+            size_hint_y: None
+            height: 48
+
+            RoundedButton:
+                text: "Back"
+                on_release: app.root.current = 'dashboard'
+
+            RoundedButton:
+                text: "Sign out"
+                on_release: root._sign_out()

@@ -1,4 +1,4 @@
-"""
+﻿"""
 Smart Student Planner - Mobile Application Entry Point.
 
 Module: LDC6004M Mobile Application Development
@@ -11,6 +11,7 @@ the ScreenManager, wires the controllers, and starts the main event loop.
 
 from kivy.app import App
 from kivy.core.window import Window
+from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, FadeTransition
 
 # Local imports: controllers, services and screens
@@ -42,29 +43,30 @@ class SmartStudentPlannerApp(App):
     title = "Smart Student Planner"
 
     def build(self):
-        """Create services, controllers and the screen manager."""
-        # --- Service layer ----------------------------------------------------
+        """Create services, controllers, load KV rules, and build the UI."""
         self.storage = StorageService()
-
-        # --- Controller layer -------------------------------------------------
         self.auth = AuthController(self.storage)
         self.tasks = TaskController(self.storage)
-
-        # --- View layer (screens) --------------------------------------------
+        
+        # Load the KV file to register screen class rules
+        Builder.load_file("smartstudentplanner.kv")
+        
+        # Create the ScreenManager
         sm = ScreenManager(transition=FadeTransition(duration=0.2))
+        
+        # Add each screen to the manager
         sm.add_widget(LoginScreen(name="login"))
         sm.add_widget(DashboardScreen(name="dashboard"))
         sm.add_widget(TaskFormScreen(name="task_form"))
         sm.add_widget(SettingsScreen(name="settings"))
-        self.sm = sm
+        
         return sm
 
     def on_start(self):
-        """Restore the previous session if a user is still logged in."""
         if self.auth.current_user:
-            self.sm.current = "dashboard"
+            self.root.current = "dashboard"
         else:
-            self.sm.current = "login"
+            self.root.current = "login"
 
 
 if __name__ == "__main__":

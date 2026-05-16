@@ -1,4 +1,4 @@
-"""
+﻿"""
 Login screen.
 
 Combines login and quick registration in a single, tabbed view. The
@@ -7,158 +7,48 @@ stays a thin presentation layer.
 """
 
 from kivy.app import App
+from kivy.properties import BooleanProperty, StringProperty
 from kivy.uix.screenmanager import Screen
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.togglebutton import ToggleButton
-from kivy.graphics import Color, Rectangle
 
-from utils.theme import THEME, FONT_BODY, FONT_LARGE, FONT_TITLE, PADDING, SPACING
-from views.common import RoundedButton, Card, Snackbar
+from views.common import Snackbar
 
 
 class LoginScreen(Screen):
     """Sign-in / register entry point."""
 
+    mode = StringProperty("signin")
+    status_text = StringProperty("")
+    status_error = BooleanProperty(False)
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # Track when the screen is displayed so we can initialize fields
+        self.bind(on_enter=self._on_enter)
 
-        with self.canvas.before:
-            Color(0.95, 0.95, 0.95, 1)
-            self._background = Rectangle(pos=self.pos, size=self.size)
-        self.bind(pos=self._update_background, size=self._update_background)
-
-        wrapper = BoxLayout(
-            orientation="vertical",
-            padding=[PADDING, PADDING * 3, PADDING, PADDING],
-            spacing=SPACING,
-        )
-
-        # ------------------- Header -------------------
-        header_bar = BoxLayout(
-            orientation="vertical",
-            size_hint_y=None,
-            height=100,
-            padding=[PADDING, PADDING // 2, PADDING, PADDING // 2],
-            spacing=6,
-        )
-        with header_bar.canvas.before:
-            Color(0.08, 0.12, 0.22, 1)
-            header_bar._bg = Rectangle(pos=header_bar.pos, size=header_bar.size)
-        header_bar.bind(pos=lambda *_: setattr(header_bar._bg, "pos", header_bar.pos),
-                        size=lambda *_: setattr(header_bar._bg, "size", header_bar.size))
-
-        header_bar.add_widget(
-            Label(
-                text="Smart Student Planner",
-                font_size=FONT_TITLE, bold=True,
-                color=(1, 1, 1, 1), size_hint_y=None, height=40,
-            )
-        )
-        header_bar.add_widget(
-            Label(
-                text="Plan modules, deadlines and revision in one place.",
-                font_size=FONT_BODY, color=(0.85, 0.9, 1, 1),
-                size_hint_y=None, height=24,
-            )
-        )
-        wrapper.add_widget(header_bar)
-
-        # ------------------- Mode toggle -------------------
-        toggle_row = BoxLayout(size_hint_y=None, height=44, spacing=8)
-
-        self.tab_signin = ToggleButton(
-            text="Sign in", state="down", group="auth_mode",
-            background_normal="", background_down="",
-            background_color=THEME["primary"], color=(1, 1, 1, 1),
-        )
-        self.tab_signup = ToggleButton(
-            text="Create account", group="auth_mode",
-            background_normal="", background_down="",
-            background_color=THEME["border"], color=THEME["text"],
-        )
-        self.tab_signin.bind(on_release=lambda *_: self._switch_mode("signin"))
-        self.tab_signup.bind(on_release=lambda *_: self._switch_mode("signup"))
-        toggle_row.add_widget(self.tab_signin)
-        toggle_row.add_widget(self.tab_signup)
-        wrapper.add_widget(toggle_row)
-
-        # ------------------- Card with inputs -------------------
-        card = Card(size_hint_y=None, height=320)
-
-        self.name_field = TextInput(
-            hint_text="Display name (optional)",
-            multiline=False, size_hint_y=None, height=44,
-            padding=[10, 12], background_color=(1, 1, 1, 1),
-            foreground_color=THEME["text"],
-        )
-        self.email_field = TextInput(
-            hint_text="E-mail address",
-            multiline=False, size_hint_y=None, height=44,
-            padding=[10, 12],
-        )
-        self.password_field = TextInput(
-            hint_text="Password (min 6 characters)",
-            password=True, multiline=False,
-            size_hint_y=None, height=44, padding=[10, 12],
-        )
-        self.action_button = RoundedButton(
-            text="Sign in", size_hint_y=None, height=48,
-        )
-        self.action_button.bind(on_release=self._submit)
-
-        self.status_label = Label(
-            text="", color=THEME["muted"], font_size=13,
-            size_hint_y=None, height=20,
-        )
-
-        card.add_widget(self.name_field)
-        card.add_widget(self.email_field)
-        card.add_widget(self.password_field)
-        card.add_widget(self.action_button)
-        card.add_widget(self.status_label)
-        wrapper.add_widget(card)
-
-        wrapper.add_widget(BoxLayout())  # spacer
-        self.add_widget(wrapper)
-
-        # Start in sign-in mode
-        self._switch_mode("signin")
-
-    def _update_background(self, *_):
-        self._background.pos = self.pos
-        self._background.size = self.size
-
-    # --------------------------------------------------- handlers
-    def _switch_mode(self, mode: str) -> None:
-        self._mode = mode
-        self.name_field.opacity = 1 if mode == "signup" else 0
-        self.name_field.disabled = mode != "signup"
-        self.action_button.text = "Create account" if mode == "signup" else "Sign in"
-        self.status_label.text = ""
+    def _on_enter(self, *args):
+        """Initialize field references when screen is shown."""
+        # These will be created by KV before on_enter is called
+        pass
 
     def _submit(self, *_):
         app = App.get_running_app()
-        email = self.email_field.text
-        password = self.password_field.text
+        email = self.ids.email_field.text
+        password = self.ids.password_field.text
 
-        if self._mode == "signup":
-            ok, msg = app.auth.register(email, password, self.name_field.text)
+        if self.mode == "signup":
+            ok, msg = app.auth.register(email, password, self.ids.name_field.text)
         else:
             ok, msg = app.auth.login(email, password)
 
         if ok:
             Snackbar(msg, success=True).show()
-            if self._mode == "signup":
-                # After registering, switch to sign-in for clarity
-                self._switch_mode("signin")
-                self.tab_signin.state = "down"
-                self.tab_signup.state = "normal"
+            if self.mode == "signup":
+                self.mode = "signin"
+                self.ids.tab_signin.state = "down"
+                self.ids.tab_signup.state = "normal"
             else:
-                # Reset fields then navigate to dashboard
-                self.password_field.text = ""
+                self.ids.password_field.text = ""
                 self.manager.current = "dashboard"
         else:
-            self.status_label.color = THEME["danger"]
-            self.status_label.text = msg
+            self.status_error = True
+            self.status_text = msg
