@@ -49,7 +49,7 @@ class SmartStudentPlannerApp(App):
         self.tasks = TaskController(self.storage)
         
         # Load the KV file to register screen class rules
-        Builder.load_file("smartstudentplanner.kv")
+        Builder.load_file("Ui/smartstudentplanner.kv")
         
         # Create the ScreenManager
         sm = ScreenManager(transition=FadeTransition(duration=0.2))
