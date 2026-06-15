@@ -4,7 +4,7 @@ A cross-platform mobile application built for the LDC6004M Mobile
 Application Development module at York St John University. The app helps
 students plan modules, manage coursework deadlines and revise on the go.
 
-> Repository placeholder: `https://github.com/chijioke300/smart-student-planner`
+> Repository: `https://github.com/chijioke300/smart-student-planner`
 ## Features
 
 - Account registration, sign-in and sign-out with hashed passwords.
