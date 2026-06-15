@@ -25,6 +25,7 @@ SmartStudentPlanner/
 ├── services/                # Local JSON storage service
 ├── utils/                   # Theme and validation helpers
 ├── views/                   # Kivy screens (login, dashboard, form, settings)
+├── Ui/                      # Kivy layout file
 ├── tests/                   # Unit and integration tests
 ├── screenshots/             # UI evidence images
 ├── docs/                    # Design diagrams (wireframes, flow, architecture)
