@@ -4,9 +4,7 @@ A cross-platform mobile application built for the LDC6004M Mobile
 Application Development module at York St John University. The app helps
 students plan modules, manage coursework deadlines and revise on the go.
 
-> Repository placeholder: `https://github.com/<your-username>/smart-student-planner`
-> (replace before submission).
-
+> Repository placeholder: `https://github.com/chijioke300/smart-student-planner`
 ## Features
 
 - Account registration, sign-in and sign-out with hashed passwords.
@@ -48,7 +46,7 @@ and task data, which keeps the codebase predictable.
 2. Clone the repository:
 
    ```bash
-   git clone https://github.com/<your-username>/smart-student-planner.git
+   git clone https://github.com/chijioke300/smart-student-planner.git
    cd smart-student-planner/SmartStudentPlanner
    ```
 3. (Recommended) Create a virtual environment:
@@ -115,4 +113,4 @@ task operations from the brief and the search filter.
 ## Licence
 
 This project was created for academic purposes for the LDC6004M module.
-All third-party code is credited inline and in the reflective narrative.
+All third-party code is credited inline and in the reflective summary.
